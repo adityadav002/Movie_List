@@ -11,10 +11,9 @@ import session from 'express-session';
 const app = express();
 app.use(express.json());
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'https://movie-list-k1bd.onrender.com'
-  ],
+  origin: process.env.CLIENT_URL || "http://localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 }));
 
