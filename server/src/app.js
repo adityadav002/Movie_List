@@ -11,7 +11,10 @@ import session from 'express-session';
 const app = express();
 app.use(express.json());
 app.use(cors({
-  origin: ['http://localhost:5173'],
+  origin: [
+    'http://localhost:5173',
+    'https://movie-list-k1bd.onrender.com'
+  ],
   credentials: true,
 }));
 
@@ -41,3 +44,4 @@ app.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
   connectdb();
 });
+
