@@ -37,8 +37,8 @@ function Navbar() {
 
         <div className={`nav-links ${menuOpen ? "show" : ""}`}>
           <Link to="/">Home</Link>
-          <a href="#bookmark">Movies</a>
           <Link to="/favourite" onClick={() => setMenuOpen(false)}>Favourite</Link>
+          <Link to="/watchList" onClick={() => setMenuOpen(false)}>Watch List</Link>
           <Link to="/addmovies" onClick={() => setMenuOpen(false)}>Edit Movies</Link>
         </div>
 

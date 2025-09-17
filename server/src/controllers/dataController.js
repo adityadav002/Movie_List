@@ -60,6 +60,45 @@ export const searchMovies = async (req, res) => {
     res.status(500).json({ error: "Search failed" });
   }
 };
+ 
+// Watch-List
+import Watch from "../models/WatchList.js";
+
+export const getWatchList = async (req, res) => {
+  try {
+    const watch = await Watch.find();
+    res.json(watch);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch WatchList" });
+  }
+};
+
+export const addWatchList = async (req, res) => {
+  try {
+    const { movieId, title, year, img } = req.body;
+
+    const exists = await Watch.findOne({ movieId });
+    if (exists)
+      return res.status(200).json({ message: "Already in WatchList" });
+
+    const newFav = new Watch({ movieId, title, year, img });
+    await newFav.save();
+
+    res.status(201).json({ message: "Added to WatchList" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to add WatchList" });
+  }
+};
+
+export const removeWatchList = async (req, res) => {
+  try {
+    const { movieId } = req.params;
+    await Watch.deleteOne({ movieId });
+    res.status(200).json({ message: "Removed from WatchList" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to remove WatchList" });
+  }
+};
 
 // favoutire
 import Favorite from "../models/favorite.js";
@@ -109,6 +148,70 @@ export const getAnimatedMovies = async (req, res) => {
     res.status(200).json({
       movies: animatedMovies,
       total: animatedMovies.length,
+    });
+  } catch (error) {
+    console.error('Error fetching animated movies:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+export const getActionMovies = async (req, res) => {
+  try {
+    const actionMovies = await Movie.find({
+      genre: { $regex: /(Action)/i },
+    });
+
+    res.status(200).json({
+      movies: actionMovies,
+      total: actionMovies.length,
+    });
+  } catch (error) {
+    console.error('Error fetching animated movies:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+export const getDramaMovies = async (req, res) => {
+  try {
+    const dramaMovies = await Movie.find({
+      genre: { $regex: /(drama)/i },
+    });
+
+    res.status(200).json({
+      movies: dramaMovies,
+      total: dramaMovies.length,
+    });
+  } catch (error) {
+    console.error('Error fetching animated movies:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+export const getComedyMovies = async (req, res) => {
+  try {
+    const comedyMovies = await Movie.find({
+      genre: { $regex: /(comedy)/i },
+    });
+
+    res.status(200).json({
+      movies: comedyMovies,
+      total: comedyMovies.length,
+    });
+  } catch (error) {
+    console.error('Error fetching animated movies:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+};
+
+export const getHorrorMovies = async (req, res) => {
+  try {
+    const horrorMovies = await Movie.find({
+      genre: { $regex: /(horror)/i },
+    });
+
+    res.status(200).json({
+      movies: horrorMovies,
+      total: horrorMovies.length,
     });
   } catch (error) {
     console.error('Error fetching animated movies:', error);

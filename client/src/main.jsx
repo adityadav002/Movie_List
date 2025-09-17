@@ -9,6 +9,7 @@ import AddMovies from "./pages/AddMovies.jsx";
 import ShowList from "./pages/ShowList.jsx";
 import Detail from "./pages/Detail.jsx";
 import Favourite from "./pages/Favourite.jsx";
+import WatchLater from "./pages/WatchList.jsx";
 
 const router = createBrowserRouter([
   {
@@ -27,6 +28,10 @@ const router = createBrowserRouter([
       {
         path: "favourite",
         element: <Favourite />,
+      },
+      {
+        path: "watchList",
+        element: <WatchLater />,
       },
     ],
   },

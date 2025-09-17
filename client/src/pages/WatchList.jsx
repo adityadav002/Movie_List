@@ -4,33 +4,32 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import "../style/ShowListStyle.css";
 
-function Favourite() {
-  const [favorites, setFavorites] = useState([]);
+function WatchLater() {
+  const [watchLaterList, setWatchLaterList] = useState([]);
 
   useEffect(() => {
-    const fetchFavorites = async () => {
+    const fetchWatchLater = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/favorites`, {
+        const res = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/watch`, {
           withCredentials: true,
         });
 
         console.log(res.data);
-        setFavorites(res.data);
+        setWatchLaterList(res.data);
       } catch (err) {
-        console.error("Failed to fetch favorites", err);
+        console.error("Failed to fetch watch later list", err);
       }
     };
-
-    fetchFavorites();
+    fetchWatchLater();
   }, []);
 
   return (
     <div className="showlist-container">
       <div className="movie-grid">
-        {favorites.length === 0 ? (
-          <p className="fav_empty">No favorites yet.</p>
+        {watchLaterList.length === 0 ? (
+          <p className="fav_empty">No movies in Watch Later.</p>
         ) : (
-          favorites.map((movie) => (
+          watchLaterList.map((movie) => (
             <div className="movie-card" key={movie.movieId}>
               <img src={movie.img} alt={movie.title} className="movie-img" />
               <div className="movie-info">
@@ -47,4 +46,4 @@ function Favourite() {
   );
 }
 
-export default Favourite;
+export default WatchLater;

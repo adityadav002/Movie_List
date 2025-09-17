@@ -11,6 +11,13 @@ import {
   removeFavorite,
   getAnimatedMovies,
   deleteMovie,
+  getActionMovies,
+  getDramaMovies,
+  getComedyMovies,
+  getHorrorMovies,
+  addWatchList,
+  removeWatchList,
+  getWatchList
 } from "../controllers/dataController.js";
 
 const router = express.Router();
@@ -29,8 +36,22 @@ router.post("/favorites", addFavorite);
 
 router.delete("/favorites/:movieId", removeFavorite);
 
+router.get("/watch", getWatchList);
+
+router.post("/watch", addWatchList);
+
+router.delete("/watch/:movieId", removeWatchList);
+
 router.get("/animated", getAnimatedMovies);
 
-router.delete("/deletemovie",  deleteMovie);
+router.get("/action", getActionMovies);
+
+router.get("/drama", getDramaMovies);
+
+router.get("/comedy", getComedyMovies);
+
+router.get("/horror", getHorrorMovies);
+
+router.delete("/deletemovie", deleteMovie);
 
 export default router;

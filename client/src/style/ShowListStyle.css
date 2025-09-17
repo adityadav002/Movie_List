@@ -536,3 +536,42 @@ body {
     background-position: -200% 0;
   }
 }
+
+.Watch_list {
+  background-color: #222;         /* dark background */
+  color: #fff;                    /* white text */
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  width: 100%;
+}
+
+.Watch_list:hover {
+  background-color: #ff5722;      /* orange on hover */
+  color: #fff;
+  transform: scale(1.05);
+}
+
+.Watch_list:active {
+  transform: scale(0.97);
+  background-color: #e64a19;      /* darker orange */
+}
+
+.Watch_list:focus {
+  outline: 2px solid #ff5722;
+  outline-offset: 4px;
+}
+
+.Watch_list.watched {
+  background-color: #4caf50; /* green */
+}
+
+.Watch_list.not-watched {
+  background-color: red; 
+}

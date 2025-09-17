@@ -9,6 +9,20 @@ import 'swiper/css';
 function Slider() {
     const sliderData = [
     {
+        image: "https://m.media-amazon.com/images/S/pv-target-images/00d8d53bbef88370084ddcad59c7c25c2283b819916da02ab000a5636c9d205a._SX1080_FMjpg_.jpg",
+        title: "Discover Hidden Gems",
+        subtitle: "Find films that fly under the radar.",
+        description:
+        "Dive into lesser-known masterpieces and uncover stories that deserve the spotlight. Every scroll brings a new surprise.",
+    },
+    {
+    image: "https://m.media-amazon.com/images/S/pv-target-images/81ef275effa427553a847bc220bebe1dc314b2e79d00333f94a6bcadd7cce851.jpg",
+    title: "Explore by Genre or Mood",
+    subtitle: "Pick your vibe, and we’ll match the movie.",
+    description:
+        "Feeling nostalgic, adventurous, or romantic? Browse collections curated by genre, tone, or even time of day.",
+    },
+    {
       image: "https://wallpaperaccess.com/full/1460157.jpg",
       title: "Rate, Review & Remember",
       subtitle: "Write your own reviews and never forget what made a film special.",

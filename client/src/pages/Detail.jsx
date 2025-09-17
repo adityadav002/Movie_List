@@ -4,11 +4,49 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "../style/DetailStyle.css";
 import axios from "axios";
-import { FaImdb } from "react-icons/fa6";
+import { FaImdb } from "react-icons/fa6"; 
 
 function Detail() {
+  const [watchList, setWatchList] = useState([])
   const { id } = useParams();
   const [movie, setMovie] = useState(null);
+
+ useEffect(() => {
+  const fetchWatchList = async () => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/watch`);
+      setWatchList(res.data);
+    } catch (err) {
+      console.error("Error fetching Watch List", err);
+    }
+  };
+  fetchWatchList();
+}, []);
+
+  const isWatched = (movieId) => {
+    return watchList.some((watch) => watch.movieId === movieId);
+  }
+
+  const toggleWatch = async (movie) => {
+    try {
+      if(isWatched(movie._id)){
+        await axios.delete(`${import.meta.env.VITE_SERVER_URL}/api/watch/${movie._id}`);
+      }
+      else{
+        await axios.post(`${import.meta.env.VITE_SERVER_URL}/api/watch`, {
+        movieId: movie._id,
+        title: movie.title,
+        year: movie.year,
+        rating: movie.rating,
+        img: movie.img || movie.poster,
+      })
+    }
+      const res = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/watch`);
+      setWatchList(res.data)
+    } catch (error) {
+      console.error("Error updating watchList", error);
+    }
+  }
 
   useEffect(() => {
     axios
@@ -63,6 +101,17 @@ function Detail() {
     <h2>Story</h2>
     <hr />
     <p>{movie.desc}</p>
+    <br />
+  
+    <center>
+      <button 
+          className={`Watch_list ${isWatched(movie._id) ? "watched" : "not-watched"}`}
+          onClick={() => toggleWatch(movie)}
+          title="Add to watch list"
+      >
+        {isWatched(movie._id) ? "✓ In Watchlist" : "+ Add to Watchlist"}
+      </button>
+    </center> 
   </div>  
 </div>
 </>
