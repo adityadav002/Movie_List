@@ -9,18 +9,21 @@ function Favourite() {
 
   useEffect(() => {
     const fetchFavorites = async () => {
+      const token = localStorage.getItem("token");
       try {
-        const res = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/favorites`, {
-          withCredentials: true,
-        });
-
-        console.log(res.data);
+        const res = await axios.get(
+          `${import.meta.env.VITE_SERVER_URL}/api/favorites`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         setFavorites(res.data);
       } catch (err) {
         console.error("Failed to fetch favorites", err);
       }
     };
-
     fetchFavorites();
   }, []);
 

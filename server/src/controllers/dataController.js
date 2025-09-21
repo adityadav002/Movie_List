@@ -66,7 +66,8 @@ import Watch from "../models/WatchList.js";
 
 export const getWatchList = async (req, res) => {
   try {
-    const watch = await Watch.find();
+    const userId = req.user.id;
+    const watch = await Watch.find({userId});
     res.json(watch);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch WatchList" });
@@ -75,13 +76,14 @@ export const getWatchList = async (req, res) => {
 
 export const addWatchList = async (req, res) => {
   try {
+    const userId = req.user.id;
     const { movieId, title, year, img } = req.body;
 
-    const exists = await Watch.findOne({ movieId });
+    const exists = await Watch.findOne({ userId, movieId });
     if (exists)
       return res.status(200).json({ message: "Already in WatchList" });
 
-    const newFav = new Watch({ movieId, title, year, img });
+    const newFav = new Watch({ userId, movieId, title, year, img });
     await newFav.save();
 
     res.status(201).json({ message: "Added to WatchList" });
@@ -92,8 +94,9 @@ export const addWatchList = async (req, res) => {
 
 export const removeWatchList = async (req, res) => {
   try {
+    const userId = req.user.id;
     const { movieId } = req.params;
-    await Watch.deleteOne({ movieId });
+    await Watch.deleteOne({ userId, movieId });
     res.status(200).json({ message: "Removed from WatchList" });
   } catch (err) {
     res.status(500).json({ error: "Failed to remove WatchList" });
@@ -105,7 +108,8 @@ import Favorite from "../models/favorite.js";
 
 export const getFavorites = async (req, res) => {
   try {
-    const favorites = await Favorite.find();
+    const userId = req.user.id;
+    const favorites = await Favorite.find({ userId });
     res.json(favorites);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch favorites" });
@@ -114,13 +118,15 @@ export const getFavorites = async (req, res) => {
 
 export const addFavorite = async (req, res) => {
   try {
+    const userId = req.user.id;
     const { movieId, title, year, img } = req.body;
 
-    const exists = await Favorite.findOne({ movieId });
-    if (exists)
+    const exists = await Favorite.findOne({ userId, movieId });
+    if (exists) {
       return res.status(200).json({ message: "Already in favorites" });
+    }
 
-    const newFav = new Favorite({ movieId, title, year, img });
+    const newFav = new Favorite({ userId, movieId, title, year, img });
     await newFav.save();
 
     res.status(201).json({ message: "Added to favorites" });
@@ -131,8 +137,9 @@ export const addFavorite = async (req, res) => {
 
 export const removeFavorite = async (req, res) => {
   try {
+    const userId = req.user.id;
     const { movieId } = req.params;
-    await Favorite.deleteOne({ movieId });
+    await Favorite.findOneAndDelete({ userId, movieId });
     res.status(200).json({ message: "Removed from favorites" });
   } catch (err) {
     res.status(500).json({ error: "Failed to remove favorite" });

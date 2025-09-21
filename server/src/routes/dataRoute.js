@@ -1,6 +1,7 @@
 /** @format */
 
 import express from "express";
+import authMiddleware from "../middlewares/authMiddleware.js";
 import {
   getMovies,
   addMovies,
@@ -30,17 +31,17 @@ router.get("/details/:id", getMovieDetails);
 
 router.get("/search", searchMovies);
 
-router.get("/favorites", getFavorites);
+router.get("/favorites", authMiddleware, getFavorites);
 
-router.post("/favorites", addFavorite);
+router.post("/favorites", authMiddleware, addFavorite);
 
-router.delete("/favorites/:movieId", removeFavorite);
+router.delete("/favorites/:movieId", authMiddleware, removeFavorite);
 
-router.get("/watch", getWatchList);
+router.get("/watch", authMiddleware, getWatchList);
 
-router.post("/watch", addWatchList);
+router.post("/watch", authMiddleware, addWatchList);
 
-router.delete("/watch/:movieId", removeWatchList);
+router.delete("/watch/:movieId", authMiddleware, removeWatchList);
 
 router.get("/animated", getAnimatedMovies);
 

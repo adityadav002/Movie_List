@@ -1,0 +1,71 @@
+/* ==================== HERO SECTION TEXT ==================== */
+
+.hero-content {
+  text-align: center;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+  color: #ffffff;
+  font-family: 'Poppins', sans-serif;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  margin-top: 13%;
+  margin-bottom: 18%;
+}
+
+.hero-title {
+  font-size: 4rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: var(--main_color, #e50914);
+  line-height: 1.3;
+  letter-spacing: 2px;
+}
+
+.hero-subtext {
+  font-size: 1.2rem;
+  font-weight: 400;
+  color: #dddddd;
+  line-height: 1.6;
+  max-width: 90%;
+  margin: 0 auto;
+}
+
+/* ==================== RESPONSIVE ==================== */
+
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2.2rem;
+  }
+
+  .hero-subtext {
+    font-size: 1rem;
+  }
+}
+
+.feature-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px 0;
+  padding: 10px;
+  justify-content: flex-start;
+}
+
+.feature-tags span {
+  background-color: transparent;
+  border: 1px solid #ccc; 
+  color: #ffffff; 
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: background-color 0.3s, transform 0.2s;
+  cursor: default;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.feature-tags span:hover {
+  background-color: #00000073;
+  transform: translateY(-2px);
+}

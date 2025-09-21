@@ -9,10 +9,14 @@ function WatchLater() {
 
   useEffect(() => {
     const fetchWatchLater = async () => {
+      const token = localStorage.getItem("token");
       try {
-        const res = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/watch`, {
-          withCredentials: true,
-        });
+        const res = await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/watch`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
 
         console.log(res.data);
         setWatchLaterList(res.data);

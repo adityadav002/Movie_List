@@ -1,5 +1,3 @@
-/** @format */
-
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
@@ -10,6 +8,11 @@ import ShowList from "./pages/ShowList.jsx";
 import Detail from "./pages/Detail.jsx";
 import Favourite from "./pages/Favourite.jsx";
 import WatchLater from "./pages/WatchList.jsx";
+import Home from "./pages/Home.jsx";
+import RegisterForm from "./Auth/RegisterForm.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import { AuthProvider } from "./context/AuthContext"; 
+import NotFound from "./pages/NotFound.jsx";
 
 const router = createBrowserRouter([
   {
@@ -17,28 +20,59 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       {
+        path: "/home",
+        element: <Home />,
+      },
+      {
         index: true,
-        element: <ShowList />,
+        element: (
+          <ProtectedRoute>
+            <ShowList />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "addmovies",
-        element: <AddMovies />,
+        element: (
+          <ProtectedRoute>
+            <AddMovies />
+          </ProtectedRoute>
+        ),
       },
-      { path: "detail/:id", element: <Detail /> },
+      {
+        path: "detail/:id",
+        element: <Detail />,
+      },
       {
         path: "favourite",
-        element: <Favourite />,
+        element: (
+          <ProtectedRoute>
+            <Favourite />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "watchList",
-        element: <WatchLater />,
+        element: (
+          <ProtectedRoute>
+            <WatchLater />
+          </ProtectedRoute>
+        ),
       },
-    ],
+      {
+        path: "/register",
+        element: <RegisterForm />,
+      },
+      
+    ]
   },
+  { path: '*', element: <NotFound /> },
 ]);
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
   </StrictMode>
 );
