@@ -19,16 +19,6 @@ export const getMovies = async (req, res) => {
   }
 };
 
-export const addMovies = async (req, res) => {
-  try {
-    const movie = await Movie.create(req.body);
-    res.status(201).json(movie);
-  } catch (error) {
-    console.error("Error creating movie:", error);
-    res.status(500).json({ error: "Failed to create movie" });
-  }
-};
-
 export const getMovieDetails = async (req, res) => {
   try {
     const movie = await Movie.findById(req.params.id);
@@ -225,23 +215,3 @@ export const getHorrorMovies = async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 };
-
-export const deleteMovie = async (req, res) => {
-  try {
-    const { title } = req.body;
-    if (!title) {
-      return res.status(400).json({ message: "Movie title is required" });
-    }
-
-    const deletedMovie = await Movie.findOneAndDelete({ title });
-
-    if (!deletedMovie) {
-      return res.status(404).json({ message: "Movie not found" });
-    }
-
-    res.status(200).json({ message: "Movie deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting movie:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-}

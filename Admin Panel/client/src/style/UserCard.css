@@ -1,0 +1,14 @@
+.card-extra{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid rgb(87, 83, 83);
+}
+
+.card-extra span{
+    font-size: 14px;
+    color: rgb(216, 209, 209);
+    margin-right: 10px;
+}

@@ -8,7 +8,7 @@ import { useAuth } from "../context/AuthContext";
 function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
-  const { user, logout } = useAuth(); // ✅ use context
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleSearch = (e) => {
@@ -61,7 +61,6 @@ function Navbar() {
               <Link to="/" onClick={() => setMenuOpen(false)}>Movies</Link>
               <Link to="/favourite" onClick={() => setMenuOpen(false)}>Favourite</Link>
               <Link to="/watchList" onClick={() => setMenuOpen(false)}>Watch List</Link>
-              <Link to="/addmovies" onClick={() => setMenuOpen(false)}>Edit</Link>
               <Link to="#" onClick={handleLogout}>Logout</Link>
             </>
           )}

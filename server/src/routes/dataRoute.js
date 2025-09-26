@@ -4,14 +4,12 @@ import express from "express";
 import authMiddleware from "../middlewares/authMiddleware.js";
 import {
   getMovies,
-  addMovies,
   getMovieDetails,
   searchMovies,
   getFavorites,
   addFavorite,
   removeFavorite,
   getAnimatedMovies,
-  deleteMovie,
   getActionMovies,
   getDramaMovies,
   getComedyMovies,
@@ -24,8 +22,6 @@ import {
 const router = express.Router();
 
 router.get("/movies", getMovies);
-
-router.post("/addmovies", addMovies);
 
 router.get("/details/:id", getMovieDetails);
 
@@ -52,7 +48,5 @@ router.get("/drama", getDramaMovies);
 router.get("/comedy", getComedyMovies);
 
 router.get("/horror", getHorrorMovies);
-
-router.delete("/deletemovie", deleteMovie);
 
 export default router;

@@ -1,0 +1,65 @@
+/* ====== MOVIE CARD STYLES ====== */
+.movie-card {
+  border-radius: 12px;
+  color: #f5f5f5;
+  margin: 5px auto;
+  transition: transform 0.3s ease;
+  border: 1px solid #630606;
+  padding: 5px 10px;
+  width: 100%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* ====== DETAILS ====== */
+.movie-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.movie-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: rgb(201, 53, 53);
+  text-decoration: underline;
+}
+
+/* ====== META (Rating, Genre, Year) ====== */
+.movie-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  font-size: 1rem;
+  color: #ccc;
+}
+
+/* ====== EXTRA INFO (Duration, Language) ====== */
+.movie-extra {
+  display: flex;
+  gap: 20px;
+  font-size: 0.95rem;
+  color: #aaa;
+}
+
+.movie-description{
+  font-size: 0.9rem;
+  color: #837f7f;
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 500px) {
+  .movie-card {
+    padding: 15px;
+  }
+
+  .movie-title {
+    font-size: 1.4rem;
+  }
+
+  .movie-meta,
+  .movie-extra {
+    font-size: 0.9rem;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+}

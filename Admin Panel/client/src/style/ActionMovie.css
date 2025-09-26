@@ -1,0 +1,16 @@
+
+.add-movie-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  font-size: 2.2rem;
+  font-weight: 600;
+  margin: 0px 0px 0px;
+  transition: all 0.2s ease-in-out;
+}
+
+.add-movie-logo:hover {
+  color: #e50914;
+  transform: translateX(5px);
+}

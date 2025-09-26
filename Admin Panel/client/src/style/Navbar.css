@@ -1,0 +1,305 @@
+/* Simple Modern Header CSS */
+
+.container {
+    margin: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 40px;
+    color: #fff;
+    background: rgba(26, 26, 26, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.container:hover {
+    border-color: rgba(229, 9, 20, 0.3);
+    box-shadow: 0 6px 25px rgba(229, 9, 20, 0.1);
+}
+
+/* Logo Section */
+.logo .logo_img {
+    display: flex;
+    align-items: center;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #e50914;
+    gap: 12px;
+    margin: 0;
+    transition: color 0.2s ease;
+    cursor: pointer;
+}
+
+.logo .logo_img:hover {
+    color: #ff1e2d;
+}
+
+/* Admin Section */
+/* Animated Admin Component CSS - Purple Theme */
+
+/* Purple Theme Variables */
+:root {
+  --purple-primary: #8b5cf6;
+  --purple-dark: #7c3aed;
+  --purple-light: #a78bfa;
+  --purple-glow: rgba(139, 92, 246, 0.4);
+  --purple-bg: rgba(139, 92, 246, 0.1);
+  --purple-border: rgba(139, 92, 246, 0.3);
+  --text-white: #ffffff;
+  --text-light: #e5e7eb;
+  --shadow-purple: rgba(139, 92, 246, 0.25);
+}
+
+.Admin {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: var(--purple-bg);
+  backdrop-filter: blur(10px);
+  border: 2px solid var(--purple-border);
+  border-radius: 50px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Animated background gradient */
+.Admin::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.2), transparent);
+  transition: left 0.6s ease;
+}
+
+/* Hover Effects */
+.Admin:hover {
+  transform: translateY(-3px) scale(1.05);
+  background: rgba(139, 92, 246, 0.2);
+  border-color: var(--purple-primary);
+  box-shadow: 
+    0 8px 25px var(--shadow-purple),
+    0 0 20px var(--purple-glow);
+}
+
+.Admin:hover::before {
+  left: 100%;
+}
+
+/* Active/Click Effect */
+.Admin:active {
+  transform: translateY(-1px) scale(1.02);
+  transition: all 0.1s ease;
+}
+
+/* Icon Styles */
+.Admin .logo_img {
+  font-size: 1.8rem;
+  color: var(--purple-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(139, 92, 246, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+/* Icon hover animation */
+.Admin:hover .logo_img {
+  color: var(--text-white);
+  background: var(--purple-primary);
+  transform: rotate(360deg);
+  box-shadow: 0 0 15px var(--purple-glow);
+}
+
+/* Icon pulse effect */
+.Admin .logo_img::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border: 2px solid var(--purple-primary);
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.3s ease;
+}
+
+.Admin:hover .logo_img::after {
+  opacity: 1;
+  transform: scale(1.2);
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}
+
+/* Text Styles */
+.Admin h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-light);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.Admin:hover h2 {
+  color: var(--text-white);
+  transform: translateX(2px);
+  text-shadow: 0 0 8px var(--purple-glow);
+}
+
+/* Typing animation on hover */
+.Admin h2::after {
+  content: '';
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 1.2em;
+  background: var(--purple-primary);
+  opacity: 0;
+  animation: none;
+}
+
+.Admin:hover h2::after {
+  opacity: 1;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Floating animation */
+.Admin {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+.Admin:hover {
+  animation: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .Admin {
+    padding: 10px 16px;
+    gap: 10px;
+    border-radius: 40px;
+  }
+  
+  .Admin .logo_img {
+    font-size: 1.5rem;
+    width: 35px;
+    height: 35px;
+  }
+  
+  .Admin h2 {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .Admin {
+    padding: 8px 14px;
+    gap: 8px;
+  }
+  
+  .Admin .logo_img {
+    font-size: 1.3rem;
+    width: 30px;
+    height: 30px;
+  }
+  
+  .Admin h2 {
+    font-size: 0.85rem;
+  }
+}
+
+/* Focus accessibility */
+.Admin:focus-visible {
+  outline: 2px solid var(--purple-primary);
+  outline-offset: 4px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .Admin,
+  .Admin::before,
+  .Admin .logo_img,
+  .Admin h2,
+  .Admin .logo_img::after {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        margin: 15px 10px;
+        padding: 16px 24px;
+        border-radius: 12px;
+    }
+    
+    .logo .logo_img {
+        font-size: 1.5rem;
+        gap: 8px;
+    }
+    
+    .Admin {
+        padding: 10px 16px;
+        gap: 8px;
+    }
+    
+    .Admin h1 {
+        font-size: 1.1rem;
+    }
+    
+    .Admin h2 {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        flex-direction: column;
+        gap: 16px;
+        padding: 20px;
+    }
+    
+    .logo .logo_img {
+        font-size: 1.4rem;
+    }
+    
+    .Admin h2 {
+        display: none;
+    }
+}

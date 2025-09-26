@@ -21,20 +21,6 @@ app.use(cors({
   credentials: true 
 }));
 
-// app.use(
-//   session({
-//     secret: process.env.SESSION_SECRET || "default_secret",
-//     resave: false,
-//     saveUninitialized: false,
-//     cookie: ({
-//     secure: true,
-//     maxAge: 24 * 60 * 60 * 1000,
-//     sameSite: "none",
-//     httpOnly: true,
-//   })
-//   }),
-// );
-
 app.get('/', (req, res) => {
   res.send('Backend is working ✅');
 });

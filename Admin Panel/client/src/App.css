@@ -1,0 +1,28 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+    /* background-image: url('https://wallpaperaccess.com/full/2539405.jpg'); */
+    background-color: rgb(13 13 13);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    scroll-behavior: smooth;
+    scroll-padding-top: 70px;
+    color: #fff;
+    text-decoration: none;
+    list-style: none;
+    outline: none;
+    border: none;
+    text-transform: capitalize;
+    transition: all 0.3s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    scrollbar-width: thin;
+    scrollbar-color: #888 transparent;
+}
