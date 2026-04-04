@@ -19,6 +19,7 @@ function Content() {
           </div>
         </div>
       </div>
+      <hr />
     </section>
   );
 }

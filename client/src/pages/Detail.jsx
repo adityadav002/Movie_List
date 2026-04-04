@@ -1,50 +1,85 @@
 /** @format */
 
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "../style/DetailStyle.css";
 import axios from "axios";
 import { FaImdb } from "react-icons/fa6";
+import SimilarMovies from "../components/SimilarMovies.jsx"
+
+const apikey = import.meta.env.VITE_API_KEY;
 
 function Detail() {
-  const [watchList, setWatchList] = useState([]);
   const { id } = useParams();
+  const location = useLocation(); // ✅ IMPORTANT
   const [movie, setMovie] = useState(null);
+  const [watchList, setWatchList] = useState([]);
+  const [showTrailer, setShowTrailer] = useState(false);
 
+  // ------------------------------------------------
+  // WATCHLIST FETCH (SYNC ON PAGE CHANGE)
+  // ------------------------------------------------
   useEffect(() => {
     const fetchWatchList = async () => {
       const token = localStorage.getItem("token");
+
+      // ✅ HARD STOP
+      if (!token || token === "undefined") {
+        setWatchList([]);
+        return;
+      }
+
       try {
         const res = await axios.get(
           `${import.meta.env.VITE_SERVER_URL}/api/watch`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         setWatchList(res.data);
       } catch (err) {
-        console.error("Error fetching Watch List", err);
+        if (err.response?.status !== 401) {
+          console.error("Error fetching Watch List", err);
+        }
       }
     };
-    console.log("Token:", localStorage.getItem("token"));
-    fetchWatchList();
-  }, []);
 
-  const isWatched = (movieId) => {
-    return watchList.some((watch) => watch.movieId === movieId);
-  };
+    fetchWatchList();
+  }, [location.pathname]); // ✅ KEY FIX
+
+  const isWatched = (movieId) =>
+    watchList.some((watch) => String(watch.movieId) === String(movieId));
 
   const toggleWatch = async (movie) => {
     const token = localStorage.getItem("token");
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    };
+
+    if (!token || token === "undefined") {
+      alert("Please login to use Watch Later ⏰");
+      return;
+    }
+
+    const watched = isWatched(movie._id);
+
+    // ✅ OPTIMISTIC UI UPDATE
+    setWatchList((prev) => {
+      if (watched) {
+        return prev.filter((w) => String(w.movieId) !== String(movie._id));
+      }
+
+      return [
+        ...prev,
+        {
+          movieId: movie._id,
+          title: movie.title,
+          year: movie.year,
+          rating: movie.rating,
+          img: movie.poster,
+        },
+      ];
+    });
+
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+
     try {
-      if (isWatched(movie._id)) {
+      if (watched) {
         await axios.delete(
           `${import.meta.env.VITE_SERVER_URL}/api/watch/${movie._id}`,
           config
@@ -57,100 +92,235 @@ function Detail() {
             title: movie.title,
             year: movie.year,
             rating: movie.rating,
-            img: movie.img || movie.poster,
+            img: movie.poster,
           },
           config
         );
       }
-      const res = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/api/watch`,
-        config
-      );
-      setWatchList(res.data);
-    } catch (error) {
-      console.error("Error updating watchList", error);
+    } catch (err) {
+      console.error("Error updating watch list", err);
     }
   };
 
+  // ------------------------------------------------
+  // FETCH TMDB DETAILS
+  // ------------------------------------------------
   useEffect(() => {
-    axios
-      .get(`${import.meta.env.VITE_SERVER_URL}/api/details/${id}`)
-      .then((res) => setMovie(res.data))
-      .catch((err) => console.error("Failed to fetch movie:", err));
+    async function fetchDetails() {
+      try {
+        const detailsRes = await axios.get(
+          `https://api.themoviedb.org/3/movie/${id}?api_key=${apikey}&append_to_response=videos,images,credits`,
+          { withCredentials: false }
+        );
+
+        const details = detailsRes.data;
+
+        const trailer = details.videos?.results?.find(
+          (v) => v.type === "Trailer"
+        );
+
+        const director = details.credits?.crew?.find(
+          (p) => p.job === "Director"
+        );
+
+        const directorData = director
+          ? {
+              name: director.name,
+              image: director.profile_path
+                ? `https://image.tmdb.org/t/p/w185${director.profile_path}`
+                : "https://via.placeholder.com/185x278?text=No+Image",
+            }
+          : null;
+
+        const cast = details.credits?.cast?.slice(0, 10) || [];
+
+        const screenshots =
+          details.images?.backdrops
+            ?.sort(() => 0.5 - Math.random())
+            .slice(0, 15)
+            .map((img) => `https://image.tmdb.org/t/p/w500${img.file_path}`) ||
+          [];
+
+        setMovie({
+          _id: details.id,
+          title: details.title,
+          rating: details.vote_average,
+          release_date: details.release_date,
+          duration: details.runtime ? `${details.runtime} min` : "N/A",
+          genres: details.genres.map((g) => g.name),
+          overview: details.overview,
+          poster: `https://image.tmdb.org/t/p/w500${details.poster_path}`,
+          backdrop: `https://image.tmdb.org/t/p/original${details.backdrop_path}`,
+          language: details.original_language,
+          director: directorData,
+          cast,
+          trailer_url: trailer
+            ? `https://www.youtube.com/watch?v=${trailer.key}`
+            : null,
+          screenshots,
+        });
+      } catch (err) {
+        console.error("TMDB detail fetch failed:", err);
+      }
+    }
+
+    fetchDetails();
   }, [id]);
 
   if (!movie) return <p>Loading...</p>;
 
+  // ------------------------------------------------
+  // UI
+  // ------------------------------------------------
   return (
-    <>
-      <div className="detail-container">
-        <section
-          className="detail-hero"
-          style={{ backgroundImage: `url(${movie.img})` }}
-        >
-          <div className="detail-content">
-            <h1>{movie.title}</h1>
-            <div className="meta-tags">
-              <span className="meta-tag fullhd">FULL HD</span>
-              <span className="meta-tag">
-                {movie.rating}
-                <FaImdb className="meta_logo" />
-              </span>
-              <span className="meta-tag">{movie.year}</span>
-              <span className="meta-tag">{movie.duration}</span>
-            </div>
-            <div className="language-tag">{movie.language}</div>
-            <div className="bottom-content">
-              <div className="category">
-                Category
-                <br />
-                <span>{movie.genre}</span>
-              </div>
-              <button className="watch-trailer-btn">
-                <a href={movie.trailer} target="blank">
-                  WATCH TRAILER
-                </a>
-              </button>
-            </div>
-          </div>
-        </section>
-        <div className="detail-description">
+    <div className="detail-container">
+      <section
+        className="detail-hero"
+        style={{ backgroundImage: `url(${movie.backdrop})` }}
+      >
+        <div className="detail-content">
           <h1>{movie.title}</h1>
-          <hr />
-          <div className="screenshot">
-            <span>
-              <img src={movie.screenshot1} alt="sc1" />
-            </span>
-            <span>
-              <img src={movie.screenshot2} alt="sc2" />
-            </span>
-            <span>
-              <img src={movie.screenshot3} alt="sc3" />
-            </span>
-            <span>
-              <img src={movie.screenshot4} alt="sc4" />
-            </span>
-          </div>
-          <h2>Story</h2>
-          <hr />
-          <p>{movie.desc}</p>
-          <br />
 
-          <center>
-            <button
-              className={`Watch_list ${
-                isWatched(movie._id) ? "watched" : "not-watched"
-              }`}
-              onClick={() => toggleWatch(movie)}
-              title="Add to watch list"
-            >
-              {isWatched(movie._id) ? "✓ In Watchlist" : "+ Add to Watchlist"}
-            </button>
-          </center>
+          <div className="meta-tags">
+            <span className="meta-tag fullhd">FULL HD</span>
+            <span className="meta-tag">
+              {movie.rating.toFixed(1)}
+              <FaImdb className="meta_logo" />
+            </span>
+            <span className="meta-tag">{movie.release_date}</span>
+            <span className="meta-tag">{movie.duration}</span>
+          </div>
+
+          <div className="language-tag">{movie.language}</div>
+
+          <div className="bottom-content">
+            <div className="category">
+              Genres
+              <br />
+              <span>{movie.genres.join(", ")}</span>
+            </div>
+
+            {movie.trailer_url && (
+              <button
+                className="watch-trailer-btn"
+                onClick={() => setShowTrailer(true)}
+              >
+                WATCH TRAILER
+              </button>
+            )}
+          </div>
         </div>
+      </section>
+
+      {showTrailer && (
+        <div
+          className="trailer-modal-overlay"
+          onClick={() => setShowTrailer(false)}
+        >
+          <div className="trailer-modal" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="trailer-close-btn"
+              onClick={() => setShowTrailer(false)}
+              aria-label="Close trailer"
+            >
+              ✖
+            </button>
+
+            <div className="trailer-video-wrapper">
+              <iframe
+                src={movie.trailer_url.replace("watch?v=", "embed/")}
+                title="Movie Trailer"
+                frameBorder="0"
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <center>
+        <button
+          className={`Watch_list ${
+            isWatched(movie._id) ? "watched" : "not-watched"
+          }`}
+          onClick={() => toggleWatch(movie)}
+        >
+          {isWatched(movie._id) ? "✓ In Watchlist" : "+ Add to Watchlist"}
+        </button>
+      </center>
+
+      {/* OVERVIEW */}
+      <div className="detail-description">
+        <h2>Overview</h2>
+        <hr />
+        <p>{movie.overview}</p>
+
+        {/* SCREENSHOTS */}
+        <h2>Screenshots</h2>
+        <hr />
+        <div className="screenshot">
+          {movie.screenshots.map((src, index) => (
+            <span key={index}>
+              <img src={src} alt={`sc-${index}`} />
+            </span>
+          ))}
+        </div>
+        <hr />
+
+        {/* CAST */}
+        <h2>Main Cast</h2>
+        <hr />
+
+        <div className="cast-grid">
+          {movie.cast.map((actor, index) => {
+            const img = actor.profile_path
+              ? `https://image.tmdb.org/t/p/w185${actor.profile_path}`
+              : "https://via.placeholder.com/185x278?text=No+Image";
+
+            return (
+              <div className="cast-card" key={index}>
+                <div className="cast-img-wrapper">
+                  <img src={img} alt={actor.name} className="cast-img" />
+
+                  <div className="cast-overlay">
+                    <p className="cast-character-text">
+                      {actor.character ? `as ${actor.character}` : ""}
+                    </p>
+                  </div>
+                </div>
+
+                <h4 className="cast-name">{actor.name}</h4>
+              </div>
+            );
+          })}
+        </div>
+
+        <h2>Director</h2>
+        <hr />
+
+        {movie.director && (
+          <div className="cast-grid">
+            <div className="cast-card">
+              <div className="cast-img-wrapper">
+                <img
+                  src={movie.director.image}
+                  alt={movie.director.name}
+                  className="cast-img"
+                />
+              </div>
+              <h4 className="cast-name">{movie.director.name}</h4>
+            </div>
+          </div>
+        )}
+
+         <SimilarMovies movieId={id} />
       </div>
-    </>
+    </div>
   );
 }
 
 export default Detail;
+
+
+// checkpoint 1

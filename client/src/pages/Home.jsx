@@ -45,6 +45,7 @@ function Home() {
             {activeTab === "login" ? <LoginForm /> : <RegisterForm />}
           </div>
         </div>
+        <br />
       </div>
     </div>
     <FAQ />

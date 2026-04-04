@@ -58,10 +58,18 @@ function Navbar() {
 
           {user && (
             <>
-              <Link to="/" onClick={() => setMenuOpen(false)}>Movies</Link>
-              <Link to="/favourite" onClick={() => setMenuOpen(false)}>Favourite</Link>
-              <Link to="/watchList" onClick={() => setMenuOpen(false)}>Watch List</Link>
-              <Link to="#" onClick={handleLogout}>Logout</Link>
+              <Link to="/favourite" onClick={() => setMenuOpen(false)}>
+                Favourite
+              </Link>
+              <Link to="/watchList" onClick={() => setMenuOpen(false)}>
+                Watch List
+              </Link>
+              <Link to="#" onClick={handleLogout}>
+                Logout
+              </Link>
+               <div className="navbar-user-name">
+            <span>{user.name}</span>
+          </div>
             </>
           )}
         </div>

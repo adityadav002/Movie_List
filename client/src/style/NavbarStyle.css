@@ -157,3 +157,19 @@
     margin-left: 0;
   }
 }
+
+.navbar-user-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #ffffff;
+  text-decoration: underline;
+  text-decoration-color: #e50914;
+  text-underline-offset: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.navbar-user-name:hover {
+  color: #e50914;
+  text-decoration: none;
+}

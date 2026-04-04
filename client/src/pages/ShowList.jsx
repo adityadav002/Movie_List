@@ -1,9 +1,14 @@
 /** @format */
 import axios from "axios";
+axios.defaults.withCredentials = false;
+
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import "../style/ShowListStyle.css";
 import Slider from "../components/Slider";
+import MovieCard from "../components/MovieCard";
+
+const apikey = import.meta.env.VITE_API_KEY;
 
 function ShowList() {
   const location = useLocation();
@@ -16,14 +21,29 @@ function ShowList() {
   const [drama, setDrama] = useState([]);
   const [comedy, setComedy] = useState([]);
   const [horror, setHorror] = useState([]);
+
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const limit = 4;
 
   const [favorites, setFavorites] = useState([]);
-  console.log("Favorites count:", favorites.length);
 
+  // -----------------------------------------
+  // MAP TMDB MOVIE => YOUR UI MOVIE FORMAT
+  // -----------------------------------------
+  const mapMovie = (m) => ({
+    _id: m.id,
+    title: m.title,
+    poster: m.poster_path
+      ? `https://image.tmdb.org/t/p/w500${m.poster_path}`
+      : "https://via.placeholder.com/500x750?text=No+Image",
+    year: m.release_date?.slice(0, 4),
+    rating: m.vote_average,
+  });
+
+  // -----------------------------------------
+  // FETCH MAIN MOVIES (SEARCH or POPULAR)
+  // -----------------------------------------
   useEffect(() => {
     setMovies([]);
     setPage(1);
@@ -33,28 +53,23 @@ function ShowList() {
   useEffect(() => {
     const fetchMovies = async () => {
       setLoading(true);
+
       try {
         const url = searchQuery
-          ? `${
-              import.meta.env.VITE_SERVER_URL
-            }/api/search?q=${searchQuery}&page=${page}&limit=${limit}`
-          : `${
-              import.meta.env.VITE_SERVER_URL
-            }/api/movies?page=${page}&limit=${limit}`;
+          ? `https://api.themoviedb.org/3/search/movie?api_key=${apikey}&query=${searchQuery}&page=${page}`
+          : `https://api.themoviedb.org/3/movie/popular?api_key=${apikey}&page=${page}`;
 
-        const res = await axios.get(url);
-        const newMovies = res.data.movies;
+        const res = await axios.get(url, { withCredentials: false });
+        const formatted = res.data.results.map(mapMovie);
 
-        if (newMovies.length < limit) {
-          setHasMore(false);
-        }
+        if (formatted.length < 20) setHasMore(false);
 
-        setMovies((prev) => (page === 1 ? newMovies : [...prev, ...newMovies]));
+        setMovies((prev) => (page === 1 ? formatted : [...prev, ...formatted]));
       } catch (err) {
         console.error("Error fetching movies:", err);
-      } finally {
-        setLoading(false);
       }
+
+      setLoading(false);
     };
 
     fetchMovies();
@@ -66,143 +81,140 @@ function ShowList() {
     }
   };
 
-  useEffect(() => {
-    const fetchFavorites = async () => {
-      const token = localStorage.getItem("token");
-      try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_SERVER_URL}/api/favorites`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            }
-          }
-        );
-        setFavorites(res.data);
-      } catch (err) {
-        console.error("Error fetching favorites", err);
-      }
-    };
-    console.log("Token:", localStorage.getItem("token"));
-    fetchFavorites();
-  }, []);
-
-  const isFavorite = (movieId) => {
-    return favorites.some((fav) => fav.movieId === movieId);
-  };
-
-  const toggleFavorite = async (movie) => {
+  // -----------------------------------------
+  // FAVORITES SYSTEM
+  // -----------------------------------------
+useEffect(() => {
+  const fetchFavorites = async () => {
     const token = localStorage.getItem("token");
-    const config = {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      } 
-    };
+
+    // ✅ HARD STOP (IMPORTANT)
+    if (!token || token === "undefined") {
+      setFavorites([]); // keep UI safe
+      return;
+    }
+
     try {
-      if (isFavorite(movie._id)) {
-        await axios.delete(
-          `${import.meta.env.VITE_SERVER_URL}/api/favorites/${movie._id}`,
-          config
-        );
-      } else {
-        await axios.post(
-          `${import.meta.env.VITE_SERVER_URL}/api/favorites`,
-          {
-            movieId: movie._id,
-            title: movie.title,
-            year: movie.year,
-            rating: movie.rating,
-            img: movie.img || movie.poster,
-          },
-          config
-        );
-      }
       const res = await axios.get(
         `${import.meta.env.VITE_SERVER_URL}/api/favorites`,
-        config
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
       setFavorites(res.data);
     } catch (err) {
-      console.error("Error updating favorites", err);
+      // ❌ DO NOT log 401 repeatedly
+      if (err.response?.status !== 401) {
+        console.error("Error fetching favorites", err);
+      }
     }
   };
 
-  const fetchAnimatedMovies = async () => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/api/animated`
+  fetchFavorites();
+}, [location.pathname]);
+
+
+const isFavorite = (movieId) =>
+  Array.isArray(favorites) &&
+  favorites.some(
+    (fav) => String(fav?.movieId) === String(movieId)
+  );
+
+
+
+ const toggleFavorite = async (movie) => {
+  const token = localStorage.getItem("token");
+  if (!token || token === "undefined") {
+    alert("Please login to manage favorites ❤️");
+    return;
+  }
+
+  const isFav = isFavorite(movie._id);
+
+  // ✅ OPTIMISTIC UI UPDATE (INSTANT)
+setFavorites((prev) => {
+  if (isFav) {
+    // 🔥 FIXED REMOVAL
+    return prev.filter(
+      (fav) => String(fav.movieId) !== String(movie._id)
+    );
+  } else {
+    return [
+      ...prev,
+      {
+        movieId: movie._id,
+        title: movie.title,
+        year: movie.year,
+        rating: movie.rating,
+        img: movie.poster,
+      },
+    ];
+  }
+});
+
+
+  const config = {
+    headers: { Authorization: `Bearer ${token}` },
+  };
+
+  try {
+    if (isFav) {
+      await axios.delete(
+        `${import.meta.env.VITE_SERVER_URL}/api/favorites/${movie._id}`,
+        config
       );
-      setAnimated(response.data.movies || []);
-    } catch (error) {
-      console.error("Error fetching animated movies:", error);
+    } else {
+      await axios.post(
+        `${import.meta.env.VITE_SERVER_URL}/api/favorites`,
+        {
+          movieId: movie._id,
+          title: movie.title,
+          year: movie.year,
+          rating: movie.rating,
+          img: movie.poster,
+        },
+        config
+      );
+    }
+  } catch (err) {
+    console.error("Favorite update failed", err);
+  }
+};
+
+
+  // -----------------------------------------
+  // FETCH GENRES FROM TMDB
+  // -----------------------------------------
+  const fetchGenre = async (genreId, setter) => {
+    try {
+      const res = await axios.get(
+        `https://api.themoviedb.org/3/discover/movie?api_key=${apikey}&with_genres=${genreId}`,
+        { withCredentials: false }
+      );
+
+      setter(res.data.results.map(mapMovie));
+    } catch (err) {
+      console.error("Error fetching genre:", err);
     }
   };
+
   useEffect(() => {
-    fetchAnimatedMovies();
+    fetchGenre(16, setAnimated); // Animated
+    fetchGenre(28, setAction); // Action
+    fetchGenre(18, setDrama); // Drama
+    fetchGenre(35, setComedy); // Comedy
+    fetchGenre(27, setHorror); // Horror
   }, []);
 
-  const fetchActionMovies = async () => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/api/action`
-      );
-      setAction(response.data.movies || []);
-    } catch (error) {
-      console.error("Error fetching animated movies:", error);
-    }
-  };
-  useEffect(() => {
-    fetchActionMovies();
-  }, []);
-
-  const fetchDramaMovies = async () => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/api/drama`
-      );
-      setDrama(response.data.movies || []);
-    } catch (error) {
-      console.error("Error fetching animated movies:", error);
-    }
-  };
-  useEffect(() => {
-    fetchDramaMovies();
-  }, []);
-
-  const fetchComedyMovies = async () => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/api/comedy`
-      );
-      setComedy(response.data.movies || []);
-    } catch (error) {
-      console.error("Error fetching animated movies:", error);
-    }
-  };
-  useEffect(() => {
-    fetchComedyMovies();
-  }, []);
-
-  const fetchHorrorMovies = async () => {
-    try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/api/horror`
-      );
-      setHorror(response.data.movies || []);
-    } catch (error) {
-      console.error("Error fetching animated movies:", error);
-    }
-  };
-  useEffect(() => {
-    fetchHorrorMovies();
-  }, []);
-
+  // -----------------------------------------
+  // UI
+  // -----------------------------------------
   return (
     <>
       <Slider />
 
       <div className="showlist-container">
-        {/* General/Search Movies Section */}
+        {/* Main Search + Popular Movies */}
         <div className="movie_header" id="bookmark">
           <h1>Movies</h1>
           <hr />
@@ -210,24 +222,12 @@ function ShowList() {
 
         <div className="movie-grid">
           {movies.map((movie) => (
-            <div className="movie-card" key={movie._id}>
-              <img src={movie.poster} alt={movie.title} className="movie-img" />
-              <div className="movie-info">
-                <h3>{movie.title}</h3>
-                <div className="movie-actions">
-                  <Link to={`/detail/${movie._id}`} className="details-link">
-                    View Details
-                  </Link>
-                  <button
-                    className="favorite-link"
-                    onClick={() => toggleFavorite(movie)}
-                    title="Add to Favorites"
-                  >
-                    {isFavorite(movie._id) ? "❤️" : "🤍"}
-                  </button>
-                </div>
-              </div>
-            </div>
+            <MovieCard
+              key={movie._id}
+              movie={movie}
+              isFavorite={isFavorite}
+              toggleFavorite={toggleFavorite}
+            />
           ))}
         </div>
 
@@ -239,184 +239,89 @@ function ShowList() {
           </button>
         )}
 
-        {/* Animated Movies Section */}
-        <div className="movie_header" id="bookmark">
+        {/* -------- Animated Movies -------- */}
+        <div className="movie_header">
           <h1>Animated Movies</h1>
           <hr />
         </div>
+
         <div className="movie-grid">
-          {animated.length > 0 ? (
-            animated.map((movie) => (
-              <div className="movie-card" key={movie._id}>
-                <img
-                  src={movie.poster}
-                  alt={movie.title}
-                  className="movie-img"
-                />
-                <div className="movie-info">
-                  <h3>{movie.title}</h3>
-                  <div className="movie-actions">
-                    <Link to={`/detail/${movie._id}`} className="details-link">
-                      View Details
-                    </Link>
-                    <button
-                      className="favorite-link"
-                      onClick={() => toggleFavorite(movie)}
-                      title="Add to Favorites"
-                    >
-                      {isFavorite(movie._id) ? "❤️" : "🤍"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p>No animated movies found.</p>
-          )}
+          {animated.map((movie) => (
+            <MovieCard
+              key={movie._id}
+              movie={movie}
+              isFavorite={isFavorite}
+              toggleFavorite={toggleFavorite}
+            />
+          ))}
         </div>
 
-        {/* Action Movie Section */}
-        <div className="movie_header" id="bookmark">
+        {/* -------- Action Movies -------- */}
+        <div className="movie_header">
           <h1>Action Movies</h1>
           <hr />
         </div>
+
         <div className="movie-grid">
-          {action.length > 0 ? (
-            action.map((movie) => (
-              <div className="movie-card" key={movie._id}>
-                <img
-                  src={movie.poster}
-                  alt={movie.title}
-                  className="movie-img"
-                />
-                <div className="movie-info">
-                  <h3>{movie.title}</h3>
-                  <div className="movie-actions">
-                    <Link to={`/detail/${movie._id}`} className="details-link">
-                      View Details
-                    </Link>
-                    <button
-                      className="favorite-link"
-                      onClick={() => toggleFavorite(movie)}
-                      title="Add to Favorites"
-                    >
-                      {isFavorite(movie._id) ? "❤️" : "🤍"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p>No action movies found.</p>
-          )}
+          {action.map((movie) => (
+            <MovieCard
+              key={movie._id}
+              movie={movie}
+              isFavorite={isFavorite}
+              toggleFavorite={toggleFavorite}
+            />
+          ))}
         </div>
 
-        {/* Drama Movie Section */}
-        <div className="movie_header" id="bookmark">
+        {/* -------- Drama Movies -------- */}
+        <div className="movie_header">
           <h1>Drama Movies</h1>
           <hr />
         </div>
+
         <div className="movie-grid">
-          {drama.length > 0 ? (
-            drama.map((movie) => (
-              <div className="movie-card" key={movie._id}>
-                <img
-                  src={movie.poster}
-                  alt={movie.title}
-                  className="movie-img"
-                />
-                <div className="movie-info">
-                  <h3>{movie.title}</h3>
-                  <div className="movie-actions">
-                    <Link to={`/detail/${movie._id}`} className="details-link">
-                      View Details
-                    </Link>
-                    <button
-                      className="favorite-link"
-                      onClick={() => toggleFavorite(movie)}
-                      title="Add to Favorites"
-                    >
-                      {isFavorite(movie._id) ? "❤️" : "🤍"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p>No action movies found.</p>
-          )}
+          {drama.map((movie) => (
+            <MovieCard
+              key={movie._id}
+              movie={movie}
+              isFavorite={isFavorite}
+              toggleFavorite={toggleFavorite}
+            />
+          ))}
         </div>
 
-        {/* Comedy Movie Section */}
-        <div className="movie_header" id="bookmark">
+        {/* -------- Comedy Movies -------- */}
+        <div className="movie_header">
           <h1>Comedy Movies</h1>
           <hr />
         </div>
+
         <div className="movie-grid">
-          {comedy.length > 0 ? (
-            comedy.map((movie) => (
-              <div className="movie-card" key={movie._id}>
-                <img
-                  src={movie.poster}
-                  alt={movie.title}
-                  className="movie-img"
-                />
-                <div className="movie-info">
-                  <h3>{movie.title}</h3>
-                  <div className="movie-actions">
-                    <Link to={`/detail/${movie._id}`} className="details-link">
-                      View Details
-                    </Link>
-                    <button
-                      className="favorite-link"
-                      onClick={() => toggleFavorite(movie)}
-                      title="Add to Favorites"
-                    >
-                      {isFavorite(movie._id) ? "❤️" : "🤍"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p>No action movies found.</p>
-          )}
+          {comedy.map((movie) => (
+            <MovieCard
+              key={movie._id}
+              movie={movie}
+              isFavorite={isFavorite}
+              toggleFavorite={toggleFavorite}
+            />
+          ))}
         </div>
 
-        {/* Horror Movie Section */}
-        <div className="movie_header" id="bookmark">
+        {/* -------- Horror Movies -------- */}
+        <div className="movie_header">
           <h1>Horror Movies</h1>
           <hr />
         </div>
+
         <div className="movie-grid">
-          {horror.length > 0 ? (
-            horror.map((movie) => (
-              <div className="movie-card" key={movie._id}>
-                <img
-                  src={movie.poster}
-                  alt={movie.title}
-                  className="movie-img"
-                />
-                <div className="movie-info">
-                  <h3>{movie.title}</h3>
-                  <div className="movie-actions">
-                    <Link to={`/detail/${movie._id}`} className="details-link">
-                      View Details
-                    </Link>
-                    <button
-                      className="favorite-link"
-                      onClick={() => toggleFavorite(movie)}
-                      title="Add to Favorites"
-                    >
-                      {isFavorite(movie._id) ? "❤️" : "🤍"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p>No action movies found.</p>
-          )}
+          {horror.map((movie) => (
+            <MovieCard
+              key={movie._id}
+              movie={movie}
+              isFavorite={isFavorite}
+              toggleFavorite={toggleFavorite}
+            />
+          ))}
         </div>
       </div>
     </>
