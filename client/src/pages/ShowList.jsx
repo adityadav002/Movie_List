@@ -84,103 +84,94 @@ function ShowList() {
   // -----------------------------------------
   // FAVORITES SYSTEM
   // -----------------------------------------
-useEffect(() => {
-  const fetchFavorites = async () => {
-    const token = localStorage.getItem("token");
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      const token = localStorage.getItem("token");
 
-    // ✅ HARD STOP (IMPORTANT)
+      // ✅ HARD STOP (IMPORTANT)
+      if (!token || token === "undefined") {
+        setFavorites([]); // keep UI safe
+        return;
+      }
+
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_SERVER_URL}/api/favorites`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        setFavorites(res.data);
+      } catch (err) {
+        // ❌ DO NOT log 401 repeatedly
+        if (err.response?.status !== 401) {
+          console.error("Error fetching favorites", err);
+        }
+      }
+    };
+
+    fetchFavorites();
+  }, [location.pathname]);
+
+  const isFavorite = (movieId) =>
+    Array.isArray(favorites) &&
+    favorites.some((fav) => String(fav?.movieId) === String(movieId));
+
+  const toggleFavorite = async (movie) => {
+    const token = localStorage.getItem("token");
     if (!token || token === "undefined") {
-      setFavorites([]); // keep UI safe
+      alert("Please login to manage favorites ❤️");
       return;
     }
 
-    try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/api/favorites`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setFavorites(res.data);
-    } catch (err) {
-      // ❌ DO NOT log 401 repeatedly
-      if (err.response?.status !== 401) {
-        console.error("Error fetching favorites", err);
+    const isFav = isFavorite(movie._id);
+
+    // ✅ OPTIMISTIC UI UPDATE (INSTANT)
+    setFavorites((prev) => {
+      if (isFav) {
+        // 🔥 FIXED REMOVAL
+        return prev.filter((fav) => String(fav.movieId) !== String(movie._id));
+      } else {
+        return [
+          ...prev,
+          {
+            movieId: movie._id,
+            title: movie.title,
+            year: movie.year,
+            rating: movie.rating,
+            img: movie.poster,
+          },
+        ];
       }
+    });
+
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+
+    try {
+      if (isFav) {
+        await axios.delete(
+          `${import.meta.env.VITE_SERVER_URL}/api/favorites/${movie._id}`,
+          config,
+        );
+      } else {
+        await axios.post(
+          `${import.meta.env.VITE_SERVER_URL}/api/favorites`,
+          {
+            movieId: movie._id,
+            title: movie.title,
+            year: movie.year,
+            rating: movie.rating,
+            img: movie.poster,
+          },
+          config,
+        );
+      }
+    } catch (err) {
+      console.error("Favorite update failed", err);
     }
   };
-
-  fetchFavorites();
-}, [location.pathname]);
-
-
-const isFavorite = (movieId) =>
-  Array.isArray(favorites) &&
-  favorites.some(
-    (fav) => String(fav?.movieId) === String(movieId)
-  );
-
-
-
- const toggleFavorite = async (movie) => {
-  const token = localStorage.getItem("token");
-  if (!token || token === "undefined") {
-    alert("Please login to manage favorites ❤️");
-    return;
-  }
-
-  const isFav = isFavorite(movie._id);
-
-  // ✅ OPTIMISTIC UI UPDATE (INSTANT)
-setFavorites((prev) => {
-  if (isFav) {
-    // 🔥 FIXED REMOVAL
-    return prev.filter(
-      (fav) => String(fav.movieId) !== String(movie._id)
-    );
-  } else {
-    return [
-      ...prev,
-      {
-        movieId: movie._id,
-        title: movie.title,
-        year: movie.year,
-        rating: movie.rating,
-        img: movie.poster,
-      },
-    ];
-  }
-});
-
-
-  const config = {
-    headers: { Authorization: `Bearer ${token}` },
-  };
-
-  try {
-    if (isFav) {
-      await axios.delete(
-        `${import.meta.env.VITE_SERVER_URL}/api/favorites/${movie._id}`,
-        config
-      );
-    } else {
-      await axios.post(
-        `${import.meta.env.VITE_SERVER_URL}/api/favorites`,
-        {
-          movieId: movie._id,
-          title: movie.title,
-          year: movie.year,
-          rating: movie.rating,
-          img: movie.poster,
-        },
-        config
-      );
-    }
-  } catch (err) {
-    console.error("Favorite update failed", err);
-  }
-};
-
 
   // -----------------------------------------
   // FETCH GENRES FROM TMDB
@@ -189,7 +180,7 @@ setFavorites((prev) => {
     try {
       const res = await axios.get(
         `https://api.themoviedb.org/3/discover/movie?api_key=${apikey}&with_genres=${genreId}`,
-        { withCredentials: false }
+        { withCredentials: false },
       );
 
       setter(res.data.results.map(mapMovie));

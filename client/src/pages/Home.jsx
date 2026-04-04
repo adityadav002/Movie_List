@@ -15,40 +15,45 @@ function Home() {
     if (storedUser) {
       navigate("/", { replace: true });
     }
-  }, []);
+  }, [navigate]);
 
   return (
     <>
-    <div className="home-background">
-      <div className="overlay">
-        <div className="header-text">
-          <Content />
-        </div>
-
-        <div className="container">
-          <div className="tabs">
-            <button
-              className={activeTab === "login" ? "tab active" : "tab"}
-              onClick={() => setActiveTab("login")}
-            >
-              Login
-            </button>
-            <button
-              className={activeTab === "register" ? "tab active" : "tab"}
-              onClick={() => setActiveTab("register")}
-            >
-              Register
-            </button>
+      <div className="home-background">
+        <div className="overlay">
+          {/* Hero Content Section */}
+          <div className="header-text">
+            <Content />
           </div>
 
-          <div className="tab-content">
-            {activeTab === "login" ? <LoginForm /> : <RegisterForm />}
+          {/* Auth Form Container */}
+          <div className="container">
+            <div className="tabs">
+              <button
+                className={activeTab === "login" ? "tab active" : "tab"}
+                onClick={() => setActiveTab("login")}
+                aria-label="Switch to login"
+              >
+                Login
+              </button>
+              <button
+                className={activeTab === "register" ? "tab active" : "tab"}
+                onClick={() => setActiveTab("register")}
+                aria-label="Switch to register"
+              >
+                Register
+              </button>
+            </div>
+
+            <div className="tab-content">
+              {activeTab === "login" ? <LoginForm /> : <RegisterForm />}
+            </div>
           </div>
         </div>
-        <br />
       </div>
-    </div>
-    <FAQ />
+      
+      {/* FAQ Section */}
+      <FAQ />
     </>
   );
 }

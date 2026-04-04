@@ -4,7 +4,7 @@ const MovieCards = ({ movie }) => {
   const IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 
   return (
-    <Link to={`/detail/${movie.id}`} className="movie-card">
+    <Link to={`/detail/${movie.id}`} className="img_similar">
       <img
         src={
           movie.poster_path

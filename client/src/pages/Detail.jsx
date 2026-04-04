@@ -5,16 +5,17 @@ import { useEffect, useState } from "react";
 import "../style/DetailStyle.css";
 import axios from "axios";
 import { FaImdb } from "react-icons/fa6";
-import SimilarMovies from "../components/SimilarMovies.jsx"
+import SimilarMovies from "../components/SimilarMovies.jsx";
 
 const apikey = import.meta.env.VITE_API_KEY;
 
 function Detail() {
   const { id } = useParams();
-  const location = useLocation(); // ✅ IMPORTANT
+  const location = useLocation();
   const [movie, setMovie] = useState(null);
   const [watchList, setWatchList] = useState([]);
   const [showTrailer, setShowTrailer] = useState(false);
+  const [favorites, setFavorites] = useState([]);
 
   // ------------------------------------------------
   // WATCHLIST FETCH (SYNC ON PAGE CHANGE)
@@ -23,7 +24,6 @@ function Detail() {
     const fetchWatchList = async () => {
       const token = localStorage.getItem("token");
 
-      // ✅ HARD STOP
       if (!token || token === "undefined") {
         setWatchList([]);
         return;
@@ -43,7 +43,7 @@ function Detail() {
     };
 
     fetchWatchList();
-  }, [location.pathname]); // ✅ KEY FIX
+  }, [location.pathname]);
 
   const isWatched = (movieId) =>
     watchList.some((watch) => String(watch.movieId) === String(movieId));
@@ -58,7 +58,7 @@ function Detail() {
 
     const watched = isWatched(movie._id);
 
-    // ✅ OPTIMISTIC UI UPDATE
+    // Optimistic UI update
     setWatchList((prev) => {
       if (watched) {
         return prev.filter((w) => String(w.movieId) !== String(movie._id));
@@ -103,6 +103,95 @@ function Detail() {
   };
 
   // ------------------------------------------------
+  // FETCH FAVORITES
+  // ------------------------------------------------
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token || token === "undefined") {
+        setFavorites([]);
+        return;
+      }
+
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_SERVER_URL}/api/favorites`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setFavorites(res.data);
+      } catch (err) {
+        if (err.response?.status !== 401) {
+          console.error("Error fetching favorites", err);
+        }
+      }
+    };
+
+    fetchFavorites();
+  }, [location.pathname]);
+
+  const isFavorite = (movieId) =>
+    Array.isArray(favorites) &&
+    favorites.some((fav) => String(fav?.movieId) === String(movieId));
+
+  const toggleFavorite = async (movie) => {
+    const token = localStorage.getItem("token");
+    if (!token || token === "undefined") {
+      alert("Please login to manage favorites ❤️");
+      return;
+    }
+
+    const isFav = isFavorite(movie._id);
+
+    // Optimistic UI update
+    setFavorites((prev) => {
+      if (isFav) {
+        return prev.filter((fav) => String(fav.movieId) !== String(movie._id));
+      } else {
+        return [
+          ...prev,
+          {
+            movieId: movie._id,
+            title: movie.title,
+            year: movie.year,
+            rating: movie.rating,
+            img: movie.poster,
+          },
+        ];
+      }
+    });
+
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+
+    try {
+      if (isFav) {
+        await axios.delete(
+          `${import.meta.env.VITE_SERVER_URL}/api/favorites/${movie._id}`,
+          config
+        );
+      } else {
+        await axios.post(
+          `${import.meta.env.VITE_SERVER_URL}/api/favorites`,
+          {
+            movieId: movie._id,
+            title: movie.title,
+            year: movie.year,
+            rating: movie.rating,
+            img: movie.poster,
+          },
+          config
+        );
+      }
+    } catch (err) {
+      console.error("Favorite update failed", err);
+    }
+  };
+
+  // ------------------------------------------------
   // FETCH TMDB DETAILS
   // ------------------------------------------------
   useEffect(() => {
@@ -137,7 +226,7 @@ function Detail() {
         const screenshots =
           details.images?.backdrops
             ?.sort(() => 0.5 - Math.random())
-            .slice(0, 15)
+            .slice(0, 4)
             .map((img) => `https://image.tmdb.org/t/p/w500${img.file_path}`) ||
           [];
 
@@ -167,7 +256,7 @@ function Detail() {
     fetchDetails();
   }, [id]);
 
-  if (!movie) return <p>Loading...</p>;
+  if (!movie) return <div className="loading-container"><p>Loading...</p></div>;
 
   // ------------------------------------------------
   // UI
@@ -239,16 +328,32 @@ function Detail() {
         </div>
       )}
 
-      <center>
+      {/* ACTION BUTTONS - FIXED */}
+      <div className="action-buttons">
         <button
-          className={`Watch_list ${
-            isWatched(movie._id) ? "watched" : "not-watched"
+          className={`action-btn watchlist-btn ${
+            isWatched(movie._id) ? "active" : ""
           }`}
           onClick={() => toggleWatch(movie)}
         >
-          {isWatched(movie._id) ? "✓ In Watchlist" : "+ Add to Watchlist"}
+          <span className="btn-icon">{isWatched(movie._id) ? "✓" : "+"}</span>
+          <span className="btn-text">
+            {isWatched(movie._id) ? "In Watchlist" : "Add to Watchlist"}
+          </span>
         </button>
-      </center>
+
+        <button
+          className={`action-btn favorite-btn ${
+            isFavorite(movie._id) ? "active" : ""
+          }`}
+          onClick={() => toggleFavorite(movie)}
+        >
+          <span className="btn-icon">{isFavorite(movie._id) ? "❤" : "♡"}</span>
+          <span className="btn-text">
+            {isFavorite(movie._id) ? "In Favorites" : "Add to Favorites"}
+          </span>
+        </button>
+      </div>
 
       {/* OVERVIEW */}
       <div className="detail-description">
@@ -262,7 +367,7 @@ function Detail() {
         <div className="screenshot">
           {movie.screenshots.map((src, index) => (
             <span key={index}>
-              <img src={src} alt={`sc-${index}`} />
+              <img src={src} alt={`Screenshot ${index + 1}`} />
             </span>
           ))}
         </div>
@@ -314,13 +419,10 @@ function Detail() {
           </div>
         )}
 
-         <SimilarMovies movieId={id} />
+        <SimilarMovies className="similar_movies" movieId={id} />
       </div>
     </div>
   );
 }
 
 export default Detail;
-
-
-// checkpoint 1
