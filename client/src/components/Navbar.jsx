@@ -80,7 +80,6 @@ function Navbar() {
         <div className="navbar-left">
           <div className="logo">
             <Link to={user ? "/" : "/home"} onClick={closeMenu}>
-              <BiSolidMovie className="logo_react" />
               <span className="logo_text">MovieDB</span>
             </Link>
           </div>

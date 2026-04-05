@@ -89,10 +89,6 @@ function WatchLater() {
               <div className="movie-info">
                 <h3>{movie.title}</h3>
 
-                <p className="movie-rating">
-                  ⭐ {movie.rating ? movie.rating.toFixed(1) : "N/A"}
-                </p>
-
                 <div className="movie-actions">
                   <Link
                     to={`/detail/${movie.movieId}`}
