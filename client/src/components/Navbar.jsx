@@ -1,25 +1,60 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "../style/NavbarStyle.css";
 import axios from "axios";
 import { BiSolidMovie } from "react-icons/bi";
+import { FiSearch, FiX } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  // Handle scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuOpen && !e.target.closest(".navbar-container")) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [menuOpen]);
+
   const handleSearch = (e) => {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && searchQuery.trim()) {
       e.preventDefault();
       navigate(`/?q=${encodeURIComponent(searchQuery)}`);
+      setSearchOpen(false);
+      setSearchQuery("");
     }
   };
 
-  const toggleMenu = () => {
+  const toggleMenu = (e) => {
+    e.stopPropagation();
     setMenuOpen((prev) => !prev);
+  };
+
+  const toggleSearch = () => {
+    setSearchOpen((prev) => !prev);
+    if (!searchOpen) {
+      setTimeout(() => {
+        document.querySelector(".navbar-search")?.focus();
+      }, 100);
+    }
   };
 
   const handleLogout = async () => {
@@ -27,63 +62,128 @@ function Navbar() {
       await axios.get(`${import.meta.env.VITE_SERVER_URL}/api/auth/logout`, {
         withCredentials: true,
       });
-      console.log("Logout successful");
-      logout(); // ✅ context logout
+      logout();
+      setMenuOpen(false);
       navigate("/home");
     } catch (error) {
       console.error("Logout failed:", error.response?.data || error.message);
     }
   };
 
+  const closeMenu = () => {
+    setMenuOpen(false);
+  };
+
   return (
-    <nav className="navbar">
+    <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
       <div className="navbar-container">
-        <div className="logo">
-          <Link to={user ? "/" : "/home"}>
-            <BiSolidMovie className="logo_react" />
-            <span className="logo_text">MovieDB</span>
-          </Link>
-        </div>
-
-        <button className="menu-btn" onClick={toggleMenu}>
-          ☰
-        </button>
-
-        <div className={`nav-links ${menuOpen ? "show" : ""}`}>
-          {!user && (
-            <Link to="/home" onClick={() => setMenuOpen(false)}>
-              Home
+        <div className="navbar-left">
+          <div className="logo">
+            <Link to={user ? "/" : "/home"} onClick={closeMenu}>
+              <BiSolidMovie className="logo_react" />
+              <span className="logo_text">MovieDB</span>
             </Link>
-          )}
+          </div>
 
+          {/* Desktop Navigation */}
           {user && (
-            <>
-              <Link to="/favourite" onClick={() => setMenuOpen(false)}>
-                Favourite
+            <div className="nav-links-desktop">
+              {/* <Link to="/" onClick={closeMenu}>
+                Movies
+              </Link> */}
+              <Link to="/favourite" onClick={closeMenu}>
+                Favourites
               </Link>
-              <Link to="/watchList" onClick={() => setMenuOpen(false)}>
+              <Link to="/watchList" onClick={closeMenu}>
                 Watch List
               </Link>
-              <Link to="#" onClick={handleLogout}>
+              <Link  onClick={handleLogout}>
                 Logout
               </Link>
-               <div className="navbar-user-name">
-            <span>{user.name}</span>
-          </div>
-            </>
+            </div>
           )}
         </div>
 
-        {user && (
-          <input
-            type="text"
-            placeholder="Search movies..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={handleSearch}
-            className="navbar-search"
-          />
-        )}
+        <div className="navbar-right">
+          {/* Search Bar */}
+          {user && (
+            <div className={`search-container ${searchOpen ? "active" : ""}`}>
+              <FiSearch className="search-icon" onClick={toggleSearch} />
+              <input
+                type="text"
+                placeholder="Search movies..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleSearch}
+                className="navbar-search"
+              />
+              {searchOpen && (
+                <FiX className="search-close" onClick={() => setSearchOpen(false)} />
+              )}
+            </div>
+          )}
+
+          {/* User Info */}
+          {user && (
+            <div className="navbar-user">
+              <div className="user-avatar">
+                {user.name?.charAt(0).toUpperCase() || "U"}
+              </div>
+              <span className="user-name">{user.name}</span>
+            </div>
+          )}
+
+          {/* Mobile Menu Button */}
+          <button 
+            className={`menu-btn ${menuOpen ? "open" : ""}`} 
+            onClick={toggleMenu}
+            aria-label="Toggle menu"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+        </div>
+
+        {/* Mobile Navigation Menu */}
+        <div className={`nav-links-mobile ${menuOpen ? "show" : ""}`}>
+          <div className="mobile-menu-header">
+            {user && (
+              <div className="mobile-user-info">
+                <div className="user-avatar-large">
+                  {user.name?.charAt(0).toUpperCase() || "U"}
+                </div>
+                <span className="mobile-user-name">{user.name}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="mobile-menu-links">
+            {!user ? (
+              <Link to="/home" onClick={closeMenu}>
+                <span>🏠</span> Home
+              </Link>
+            ) : (
+              <>
+                <Link to="/" onClick={closeMenu}>
+                  <span>🎬</span> Movies
+                </Link>
+                <Link to="/favourite" onClick={closeMenu}>
+                  <span>❤️</span> Favourites
+                </Link>
+                <Link to="/watchList" onClick={closeMenu}>
+                  <span>📋</span> Watch List
+                </Link>
+                <button className="logout-btn" onClick={handleLogout}>
+                  <span>🚪</span> Logout
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Overlay */}
+        {menuOpen && <div className="menu-overlay" onClick={closeMenu}></div>}
       </div>
     </nav>
   );
